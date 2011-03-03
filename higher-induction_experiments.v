@@ -1,6 +1,17 @@
+(** Some experiments with the idea of inductive definitions that allow constructors to produce not only points in the type being defined, but also paths in this type, i.e. points of its path space.
+
+Obviously such definitions are not possible in Coq; here I simulate them, by taking as axioms the recursors which they should produce if they *were* allowed, and worked similarly to the standard inductive definitions.  So, the types of these recursor axioms were essentially produced by imitating the standard recursors produced by Coq.
+
+They types become necessarily slightly more complicated, since the ‘computation’ rules may only be assumed up to propositional equality.  One could also imagine an extension of the type theory in which these really were *computation* rules, holding up to definitional equality; i.e. where these “higher-dimensional” inductive definitions were implemented just as an extension of the normal ones.
+
+There are three sections, investigating successively the interval; the circle; and the mapping cylinder of a map.  This last demonstrates a non-trivial consequence of these axioms: a “cofibration/trivial fibration” weak factorisation on the type theory.  *)
+
+
+
 Require Import quick_ext.
 
-(** No univalence was used in the writing of this file! *)
+(** No univalence was used in the writing of this file!  This is imported just for the basic functions on path spaces. *)
+
 
 
 
@@ -23,9 +34,10 @@ Defined.
 
 
 
-(*******************************)
-(** The real meat begins here **)
-(*******************************)
+
+(* * ***************************** * *)
+(* * * The real meat begins here * * *)
+(* * ***************************** * *)
 
                    
 Section Interval.
@@ -36,31 +48,33 @@ Axiom left_pt : Interval.
 Axiom right_pt : Interval.
 Axiom segment : left_pt ~ right_pt.
 
-(*
+(**
 The non-dependent eliminators, written as a warmup for the dependent ones.
-Too weak to do anything with, but helpful to start seeing how these eliminators work.
+Too weak to do anything with, but helpful to start seeing how these eliminators work.  We will never actually use these. *)
 
 Axiom Interval_rect' : forall (Y:Type) (d_l : Y) (d_r : Y) (d_seg : d_l ~ d_r),
                           Interval -> Y.
 
 Axiom Interval_comp'_l :  forall (Y:Type) (d_l : Y) (d_r : Y) (d_seg : d_l ~ d_r),
-                     Interval_rect Y d_l d_r d_seg left_pt ~ d_l.
+                     Interval_rect' Y d_l d_r d_seg left_pt ~ d_l.
 
 Axiom Interval_comp'_r :  forall (Y:Type) (d_l : Y) (d_r : Y) (d_seg : d_l ~ d_r),
-                     Interval_rect Y d_l d_r d_seg right_pt ~ d_r.
+                     Interval_rect' Y d_l d_r d_seg right_pt ~ d_r.
 
 Axiom Interval_comp'_seg :  forall (Y:Type) (d_l : Y) (d_r : Y) (d_seg : d_l ~ d_r),
-                trans (sym (Interval_comp_l Y d_l d_r d_seg))
-               (trans (cong (Interval_rect Y d_l d_r d_seg) segment)
-                      (Interval_comp_r Y d_l d_r d_seg))
+                trans (sym (Interval_comp'_l Y d_l d_r d_seg))
+               (trans (cong (Interval_rect' Y d_l d_r d_seg) segment)
+                      (Interval_comp'_r Y d_l d_r d_seg))
                 ~ d_seg.
-*)
+
+
+(** The actual eliminators: *)
 
 Axiom Interval_rect : forall (P : Interval -> Type)
                        (d_l : P left_pt) (d_r : P right_pt)
                        (d_seg : transport P segment d_l ~ d_r),
                           forall x : Interval, P x.
-(* Writing this, one may be surprised by the type of d_seg; one realises that in these sorts of induction principles, one will need coercions between fibers to make the hypotheses about id-terms well-typed. *)
+(** Writing this, one may be surprised by the type of d_seg; one realises that in these sorts of induction principles, one will need coercions between fibers to make the hypotheses about id-terms well-typed. *)
 
 Axiom Interval_comp_l :  forall (P : Interval -> Type)
                        (d_l : P left_pt) (d_r : P right_pt)
@@ -80,7 +94,7 @@ Axiom Interval_comp_seg :  forall (P : Interval -> Type)
                (trans (cong_dep (Interval_rect P d_l d_r d_seg) segment)
                       (Interval_comp_r P d_l d_r d_seg))
                 ~ d_seg.
-(* the type of the conclusion here is somewhat tricky to give!  But it is correct, I think — and in fact is of a reasonably generalisable form. *)
+(** the type of the conclusion here is somewhat tricky to give!  But it is correct, I think — and in fact is of a reasonably generalisable form. *)
 
 Definition interval_is_contractible : (isContr Interval).
 unfold isContr.  split with right_pt.
@@ -120,6 +134,8 @@ Oh, d’oh!  Of course not — this whole thing will be trivial since Interval i
 End Interval.
 
 
+
+
 Section Circle.
 
 Axiom Circle : Type.
@@ -127,7 +143,7 @@ Axiom Circle : Type.
 Axiom base : Circle.
 Axiom loop : base ~ base.
  
-(** Warm-up, again:
+(** Warm-up, again, with the non-dependent version:
 Axiom Circle_rect' : forall (Y:Type)
                            (d_b : Y)
                            (d_l : d_b ~ d_b), 
@@ -142,7 +158,7 @@ Axiom Circle_rect : forall (P : Circle -> Type)
 (** Here, one might reasonably expect the type of d_l to be just  d_b ~ d_b (I thought it would be, at first).  But a little thought shows that it needs to include this transport.  Three very different justifications:
   (a) without this, one has trouble stating the axiom Circle_compute_loop;
   (b) as the Interval version shows above, in general the hypotheses for id-constructors in these induction principles will *need* coercions in their types;
-  (c) most convincingly, inspecting the universal property for ΣS^1 in the groupoid model, with respect to fibrations over itself, shows that it satisfies _this_ version, not the naïve one.  (The surprise comes from the form of morphisms in the total space of the fibration.)  *)
+  (c) most convincingly, inspecting the universal property for ΣS^1 in the groupoid model, with respect to fibrations over itself, shows that it satisfies _this_ version, not the naïve one.  (The complication comes from the form of morphisms in the total space of the fibration.)  *)
  
 Axiom Circle_compute_base :  forall (P : Circle -> Type)
                            (d_b : P base)
@@ -185,6 +201,7 @@ End Circle.
 Section MappingCylinder.
 
 Axiom map_cyl: forall {X Y:Type} (f:X -> Y), Y -> Type.
+(** defined before introducing X, Y, f since otherwise this is interpreted as dependent just on Y, with X and f allowed to vary in the constructors. *)
 
 Variables X Y:Type.
 Variable f : X -> Y.
@@ -225,7 +242,8 @@ Axiom map_cyl_comp_seg : forall (P : (forall y:Y, map_cyl f y -> Type))
           (trans (cong_dep (map_cyl_rect P d_l d_r d_seg (f x)) (inseg x))
                  (map_cyl_comp_r P d_l d_r d_seg (f x))))
           ~ (d_seg x).
-(** Again: compare to the type from the Interval_comp_seg:
+
+(** Again: compare to the final type from the Interval_comp_seg:
 
                (trans (sym (cong (transport P segment)
                               (Interval_comp_l P d_l d_r d_seg)) )
@@ -254,5 +272,6 @@ Check @map_cyl.
 Check inl.
 Check map_cyl_trivial.
 
-(** If we really had these defined as inductive types, with the computation rules actually holding up to definitional equality, then we would now have a second (algebraic?) weak factorisation system, which together with the GG awfs gives much of the structure of a model category on the theory! *)
+(** If we really had these defined as inductive types, with the computation rules actually holding up to definitional equality, this shows that we would now have a second (algebraic?) weak factorisation system, which together with the GG awfs gives much of the structure of a model category on the theory!
 
+ (The generating trivial fibrations are families of contractible types.  Then any unary constructor of an inductively defined type, considered as a morphism, is a cofibration — e.g. inl into the total mapping cylinder, or refl into the total path space — this is not hard to prove.)  *)
