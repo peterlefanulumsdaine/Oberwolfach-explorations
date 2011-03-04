@@ -9,14 +9,15 @@ Currently contains files:
 
 - `paths.v`: Definition of path spaces, and basic workhorse functions for composition of paths, transport along paths, etc.
 
-- `basic_weqs.v`: Some basic homotopy-theoretic definitions — contractibility, weak equivalences, basic constructions with these.
+- `basic_weqs.v`: Some basic homotopy-theoretic definitions — contractibility, weak equivalences, basic constructions with these.  (Depends on `paths`.)
 
-- `etacorrection.v`: The propositional η-rule, and a couple of lemmas.
+- `etacorrection.v`: The propositional η-rule, and a couple of lemmas.  (Depends on `paths`, `basic_weqs`.)
 
-- `univalence.v`: Voevodsky’s Univalence axiom, and its important equivalent form as an induction principle for weq’s.
+- `univalence.v`: Voevodsky’s Univalence axiom, and its important equivalent form as an induction principle for weq’s. (Depends on `paths`, `basic_weqs`.)
 
-- `pathspaces.v`: Definition and constructions on the total path spaces of types.
+- `pathspaces.v`: Definition and constructions on the total path spaces of types. (Depends on `paths`, `basic_weqs`.)
 
-- `fext_from_univalence.v`: Deduction of functional extensionality from UA.  (Depending on all the files above.)
+- `fext_from_univalence.v`: Deduction of functional extensionality from UA.  (Depends on all the files above.)
 
-- `higher-induction_experiments.v`: investigating (approximations of) higher-dimensional inductive type definitions — the interval, the circle, and mapping cylinders.
+- `higher-induction_experiments.v`: investigating (approximations of) higher-dimensional inductive type definitions — the interval, the circle, and mapping cylinders.  (Depends on `paths`.)
+
