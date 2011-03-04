@@ -1,6 +1,6 @@
 (** Some experiments with the idea of inductive definitions that allow constructors to produce not only points in the type being defined, but also paths in this type, i.e. points of its path space.
 
-Obviously such definitions are not possible in Coq; here I simulate them, by taking as axioms the recursors which they should produce if they *were* allowed, and worked similarly to the standard inductive definitions.  So, the types of these recursor axioms were essentially produced by imitating the standard recursors produced by Coq.
+Obviously such definitions are not possible in Coq; here we simulate them by taking as axioms the recursors which they should produce if they *were* allowed, and worked similarly to the standard inductive definitions.  So, the types of these recursor axioms were essentially produced by imitating the standard recursors produced by Coq.
 
 They types become necessarily slightly more complicated, since the ‘computation’ rules may only be assumed up to propositional equality.  One could also imagine an extension of the type theory in which these really were *computation* rules, holding up to definitional equality; i.e. where these “higher-dimensional” inductive definitions were implemented just as an extension of the normal ones.
 
@@ -8,36 +8,8 @@ There are three sections, investigating successively the interval; the circle; a
 
 
 
-Require Import quick_ext.
+Require Import paths.
 
-(** No univalence was used in the writing of this file!  This is imported just for the basic functions on path spaces. *)
-
-
-
-
-(** Skip ahead!  These are just preparatory lemmas, which eventually should probably come from a library about path spaces, or perhaps better still from a tactic… *)
-
-Definition cong_dep {X:Type} {P : X -> Type} (f: forall x:X, P x)
-                   {x x' : X} (p: x ~ x') : transport P p (f x) ~ f x'.
-induction p.  exact refl.
-Defined.
-
-Lemma transport_of_path_is_composition {X:Type} {x x' : X} (p: x ~ x') :
-         (transport (fun y => y ~ x') p p) ~ refl.
-induction p.  simpl.  exact refl.
-Defined.
-
-Lemma nondependent_transport_is_trivial {X Y : Type} {x x' : X} {p : x ~ x'} {y : Y}
-              : transport (fun _ => Y) p y ~ y.
-induction p.  apply refl.
-Defined.
-
-
-
-
-(* * ***************************** * *)
-(* * * The real meat begins here * * *)
-(* * ***************************** * *)
 
                    
 Section Interval.
@@ -269,8 +241,11 @@ Defined.
 End MappingCylinder.
 
 Check @map_cyl.
+(*   : forall X Y : Type, (X -> Y) -> Y -> Type *)
 Check inl.
+(*   : forall (X Y : Type) (f : X -> Y) (x : X), map_cyl f (f x) *)
 Check map_cyl_trivial.
+(*   : forall (X Y : Type) (f : X -> Y) (y : Y), isContr (map_cyl f y) *)
 
 (** If we really had these defined as inductive types, with the computation rules actually holding up to definitional equality, this shows that we would now have a second (algebraic?) weak factorisation system, which together with the GG awfs gives much of the structure of a model category on the theory!
 
